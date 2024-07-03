@@ -1,0 +1,45 @@
+services:
+    app:
+        # jika ingin menggunakan image yang sudah saya sediakan
+        # image: ekasatriaap/apc:8.2.19
+        build:
+            context: ./
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        working_dir: /var/www/
+        volumes:
+            - ./:/var/www
+        networks:
+            - php-network
+    nginx:
+        image: nginx:1.27.0-alpine
+        container_name: php-server
+        restart: unless-stopped
+        ports:
+            - 80:80
+        volumes:
+            - ./:/var/www
+            - ./docker-compose/nginx:/etc/nginx/conf.d/
+        networks:
+            - php-network
+
+    mariadb:
+        image: mariadb
+        container_name: mariadb-php
+        environment:
+            # password root wajib
+            MYSQL_ROOT_PASSWORD: admin
+        ports:
+            - "3306:3306"
+        volumes:
+            - php-db:/var/lib/mysql
+        networks:
+            - php-network
+
+volumes:
+    php-db:
+        name: volume-php-db
+
+networks:
+    php-network:
+        driver: bridge
